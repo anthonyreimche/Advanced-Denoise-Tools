@@ -3,7 +3,7 @@
   "name": "Advanced Denoise",
   "version": "1.0.0",
   "description": "GPU noise reduction — pick a method in Preferences (Wavelet à trous, Bilateral or Non-local means); controls live in Develop ▸ Detail. Only the selected method runs.",
-  "author": "SafeLight",
+  "author": "Anthony Reimche",
   "main": "dist/index.js",
   "categories": ["Develop", "Detail"],
   "keywords": ["safelight-extension", "denoise", "noise-reduction", "wavelet", "nlm"],
