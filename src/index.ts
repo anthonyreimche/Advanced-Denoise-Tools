@@ -13,11 +13,22 @@ import { STAGE_ID, stageFor, type Method } from "./methods";
 import { DenoiseControls } from "./controls";
 
 const METHOD_KEY = "method";
+const SLOT_ID = `${STAGE_ID}.controls`;
 
+// Register the GPU stage AND the Detail-panel controls together, gated on the
+// method. With a method active, both go in. With "off" both come out — and
+// removing the develop-detail slot is what lets the core Detail panel fall back
+// to its built-in NR sliders (the panel keys that fallback on the slot being
+// empty, so a slot that merely renders null isn't enough — it must be gone).
 function applyMethod(api: SafelightAPI, method: Method): void {
   const stage = stageFor(method);
-  if (!stage) api.unregisterProcessingStage(STAGE_ID);
-  else api.registerProcessingStage(stage);
+  if (!stage) {
+    api.unregisterProcessingStage(STAGE_ID);
+    api.unregisterSlot?.(SLOT_ID);
+  } else {
+    api.registerProcessingStage(stage);
+    api.registerSlot({ id: SLOT_ID, slot: "develop-detail", component: DenoiseControls });
+  }
 }
 
 export function activate(api: SafelightAPI): void {
@@ -42,13 +53,8 @@ export function activate(api: SafelightAPI): void {
     ],
   });
 
-  api.registerSlot({
-    id: `${STAGE_ID}.controls`,
-    slot: "develop-detail",
-    component: DenoiseControls,
-  });
-
-  // Apply the saved method now, and follow changes from the Preferences dropdown.
+  // Apply the saved method now (registers the stage + controls slot when a
+  // method is active, leaves both out when "off"), and follow dropdown changes.
   applyMethod(api, api.settings.get<Method>(METHOD_KEY, "off"));
   api.settings.onChange((key, value) => {
     if (key === METHOD_KEY) applyMethod(api, (value as Method) ?? "off");

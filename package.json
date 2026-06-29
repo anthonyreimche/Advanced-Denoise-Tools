@@ -1,6 +1,6 @@
 {
   "name": "safelight-advanced-denoise",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "Advanced Denoise extension for SafeLight — wavelet (à trous), bilateral and non-local-means noise reduction.",
   "type": "module",
   "scripts": {

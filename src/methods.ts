@@ -24,18 +24,24 @@ export interface Knob {
   max: number;
   step: number;
   default: number;
+  // Alt/Ctrl-drag preview ("CTRL view") mode, matching the core Detail panel's
+  // develop-store.sharpenViz uniform: 1 = masking, 2 = detail/edge signal,
+  // 3 = luminance (grayscale), 4 = chroma (colour-noise reveal). Omitted = none.
+  // Mirrors the built-in NR convention: colour knob reveals chroma, everything
+  // else shows the luminance result of the denoise.
+  viz?: number;
 }
 
 export const KNOBS: Record<string, Knob> = {
-  lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0 },
-  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0 },
-  detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50 },
-  scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5 },
-  shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0 },
-  highlight: { key: "highlight", label: "Highlights", min: 0, max: 100, step: 1, default: 0 },
-  radius: { key: "radius", label: "Radius", min: 1, max: 3, step: 0.1, default: 2 },
-  strength: { key: "strength", label: "Strength", min: 0, max: 100, step: 1, default: 0 },
-  quality: { key: "quality", label: "Quality", min: 0, max: 100, step: 1, default: 0 },
+  lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0, viz: 4 },
+  detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50, viz: 3 },
+  scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5, viz: 3 },
+  shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  highlight: { key: "highlight", label: "Highlights", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  radius: { key: "radius", label: "Radius", min: 1, max: 3, step: 0.1, default: 2, viz: 3 },
+  strength: { key: "strength", label: "Strength", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  quality: { key: "quality", label: "Quality", min: 0, max: 100, step: 1, default: 0, viz: 3 },
 };
 
 const uni = (knob: Knob): UniformDeclaration => ({

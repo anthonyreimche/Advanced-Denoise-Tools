@@ -1,7 +1,8 @@
 {
   "id": "advanced-denoise",
   "name": "Advanced Denoise",
-  "version": "1.0.0",
+  "version": "1.1.2",
+  "minAppVersion": "2.4.3",
   "description": "GPU noise reduction — pick a method in Preferences (Wavelet à trous, Bilateral or Non-local means); controls live in Develop ▸ Detail. Only the selected method runs.",
   "author": "Anthony Reimche",
   "main": "dist/index.js",

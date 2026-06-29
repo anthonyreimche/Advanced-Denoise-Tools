@@ -1,35 +1,35 @@
-let _ = null, f = null;
-function A(e) {
-  _ = e.react, f = e;
+let u = null, m = null;
+function L(e) {
+  u = e.react, m = e;
 }
-function s() {
-  if (!f) throw new Error("[advanced-denoise] api used before activate()");
-  return f;
+function n() {
+  if (!m) throw new Error("[advanced-denoise] api used before activate()");
+  return m;
 }
-function D() {
-  if (!_) throw new Error("[advanced-denoise] runtime used before activate()");
-  return _;
+function z() {
+  if (!u) throw new Error("[advanced-denoise] runtime used before activate()");
+  return u;
 }
-function i(e, a, ...o) {
-  return D().createElement(e, a, ...o);
+function c(e, a, ...o) {
+  return z().createElement(e, a, ...o);
 }
-const r = "advanced-denoise.nr", t = {
-  lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0 },
-  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0 },
-  detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50 },
-  scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5 },
-  shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0 },
-  highlight: { key: "highlight", label: "Highlights", min: 0, max: 100, step: 1, default: 0 },
-  radius: { key: "radius", label: "Radius", min: 1, max: 3, step: 0.1, default: 2 },
-  strength: { key: "strength", label: "Strength", min: 0, max: 100, step: 1, default: 0 },
-  quality: { key: "quality", label: "Quality", min: 0, max: 100, step: 1, default: 0 }
-}, c = (e) => ({
+const d = "advanced-denoise.nr", t = {
+  lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0, viz: 4 },
+  detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50, viz: 3 },
+  scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5, viz: 3 },
+  shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  highlight: { key: "highlight", label: "Highlights", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  radius: { key: "radius", label: "Radius", min: 1, max: 3, step: 0.1, default: 2, viz: 3 },
+  strength: { key: "strength", label: "Strength", min: 0, max: 100, step: 1, default: 0, viz: 3 },
+  quality: { key: "quality", label: "Quality", min: 0, max: 100, step: 1, default: 0, viz: 3 }
+}, r = (e) => ({
   key: e.key,
   glslType: "float",
   default: e.default,
   range: { min: e.min, max: e.max, step: e.step },
   label: e.label
-}), L = [t.lumAmt, t.colAmt, t.shadow, t.highlight].map(c), E = `
+}), E = [t.lumAmt, t.colAmt, t.shadow, t.highlight].map(r), T = `
 float _la = lumAmt / 100.0;
 float _ca = colAmt / 100.0;
 if (_la > 0.001 || _ca > 0.001) {
@@ -45,9 +45,9 @@ if (_la > 0.001 || _ca > 0.001) {
   vec3 _ch = mix(_chC, _chD, clamp(_ca * _zone, 0.0, 1.0));
   lin = _ch * _nl;
 }
-`, T = `
-float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 0.0625); }
 `, O = `
+float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 0.0625); }
+`, P = `
 {
   if (uPassIndex < int(scales)) {
     float _dpr = detail / 100.0;
@@ -93,7 +93,7 @@ float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 
   }
   c = _w > 0.0 ? _acc / _w : _ctr;
 }
-`, P = `
+`, R = `
 {
   float _h2 = mix(0.05, 0.004, strength / 100.0);
   float _q = mix(1.0, 2.0, quality / 100.0);
@@ -120,45 +120,45 @@ float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 
   }
   c = _w > 0.0 ? _acc / _w : _ctr;
 }
-`, R = {
+`, I = {
   wavelet: [t.lumAmt, t.detail, t.colAmt, t.scales, t.shadow, t.highlight],
   bilateral: [t.lumAmt, t.colAmt, t.radius, t.detail],
   nlm: [t.lumAmt, t.colAmt, t.strength, t.quality]
 };
 function q(e) {
-  return e === "off" ? [] : R[e];
+  return e === "off" ? [] : I[e];
 }
 function C(e) {
   if (e === "off") return null;
   const a = {
-    id: r,
+    id: d,
     name: "Advanced Denoise",
     phase: "noise-reduction",
     priority: 40,
-    glsl: E,
-    uniforms: L
+    glsl: T,
+    uniforms: E
   };
   return e === "wavelet" ? {
     ...a,
     passes: [
-      { glsl: O, helpers: T, iterations: 5, uniforms: [t.detail, t.scales].map(c) }
+      { glsl: P, helpers: O, iterations: 5, uniforms: [t.detail, t.scales].map(r) }
     ]
   } : e === "bilateral" ? {
     ...a,
-    passes: [{ glsl: N, iterations: 1, uniforms: [t.radius, t.detail].map(c) }]
+    passes: [{ glsl: N, iterations: 1, uniforms: [t.radius, t.detail].map(r) }]
   } : {
     ...a,
-    passes: [{ glsl: P, iterations: 1, uniforms: [t.strength, t.quality].map(c) }]
+    passes: [{ glsl: R, iterations: 1, uniforms: [t.strength, t.quality].map(r) }]
   };
 }
-const I = {
+const M = {
   off: "Off",
   wavelet: "Wavelet",
   bilateral: "Bilateral",
   nlm: "Non-local means"
 };
 function U(e) {
-  return i(
+  return c(
     "div",
     {
       style: {
@@ -174,46 +174,48 @@ function U(e) {
   );
 }
 function B() {
-  const e = s().react, a = s().stores.useDevelopStore, o = s().components.Slider, [u, x] = e.useState(
-    () => s().settings.get("method", "off")
+  const e = n().react, a = n().stores.useDevelopStore, o = n().components.Slider, [s, g] = e.useState(
+    () => n().settings.get("method", "off")
   );
-  e.useEffect(() => s().settings.onChange((l, n) => {
-    l === "method" && x(n ?? "off");
+  e.useEffect(() => n().settings.onChange((l, i) => {
+    l === "method" && g(i ?? "off");
   }), []);
-  const h = a((l) => l.paramBag), g = a((l) => l.setDynParam), w = a((l) => l.commitEdit), m = q(u);
-  if (m.length === 0) return null;
-  const y = (l) => {
-    const n = `${r}.${l.key}`, p = h[n], S = typeof p == "number" ? p : l.default;
-    return i(o, {
+  const w = a((l) => l.paramBag), y = a((l) => l.setDynParam), S = a((l) => l.commitEdit), A = a((l) => l.setSharpenViz), v = q(s);
+  if (v.length === 0) return null;
+  const b = (l) => {
+    const i = `${d}.${l.key}`, p = w[i], D = typeof p == "number" ? p : l.default;
+    return c(o, {
       key: l.key,
       label: l.label,
-      value: S,
+      value: D,
       min: l.min,
       max: l.max,
       step: l.step,
       defaultValue: l.default,
-      onChange: (b) => g(n, b),
-      onCommit: () => w(`Denoise ${l.label}`)
+      onChange: (_) => y(i, _),
+      onCommit: () => S(`Denoise ${l.label}`),
+      onModifierPreview: l.viz ? (_) => A(_ ? l.viz : 0) : void 0
     });
   };
-  return i(
+  return c(
     "div",
     null,
-    U(`Noise Reduction · ${I[u]}`),
-    i("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } }, m.map(y))
+    U(`Noise Reduction · ${M[s]}`),
+    c("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } }, v.map(b))
   );
 }
-const d = "method";
-function v(e, a) {
+const f = "method", x = `${d}.controls`;
+function h(e, a) {
+  var s;
   const o = C(a);
-  o ? e.registerProcessingStage(o) : e.unregisterProcessingStage(r);
+  o ? (e.registerProcessingStage(o), e.registerSlot({ id: x, slot: "develop-detail", component: B })) : (e.unregisterProcessingStage(d), (s = e.unregisterSlot) == null || s.call(e, x));
 }
-function M(e) {
-  A(e), e.registerSettings({
+function H(e) {
+  L(e), e.registerSettings({
     title: "Advanced Denoise",
     fields: [
       {
-        key: d,
+        key: f,
         label: "Denoise method",
         hint: "Which noise-reduction algorithm runs in Develop. Only the selected method is active, and its controls appear under Detail ▸ Noise Reduction. 'Off' restores the built-in noise reduction.",
         type: "select",
@@ -226,18 +228,14 @@ function M(e) {
         ]
       }
     ]
-  }), e.registerSlot({
-    id: `${r}.controls`,
-    slot: "develop-detail",
-    component: B
-  }), v(e, e.settings.get(d, "off")), e.settings.onChange((a, o) => {
-    a === d && v(e, o ?? "off");
+  }), h(e, e.settings.get(f, "off")), e.settings.onChange((a, o) => {
+    a === f && h(e, o ?? "off");
   });
 }
-function H() {
+function G() {
 }
 export {
-  M as activate,
-  H as deactivate
+  H as activate,
+  G as deactivate
 };
 //# sourceMappingURL=index.js.map

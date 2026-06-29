@@ -1,7 +1,8 @@
 // Denoise controls rendered INSIDE the core Detail panel (the "develop-detail"
 // slot). Shows the active method's knobs; sliders write the develop param bag by
-// qualified key, which feeds the method's GPU stage. Renders nothing when the
-// method is Off, so the panel falls back to the built-in NR sliders.
+// qualified key, which feeds the method's GPU stage. The slot itself is only
+// registered while a method is active (see index.ts applyMethod), so when "off"
+// this component isn't mounted at all and the panel shows its built-in NR sliders.
 //
 // Inline styles + CSS variables (runtime-loaded extensions aren't Tailwind-scanned).
 
@@ -53,9 +54,16 @@ export function DenoiseControls() {
   const setDynParam: (k: string, v: unknown) => void = useDevelopStore((s: any) => s.setDynParam);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const commitEdit: (label: string) => void = useDevelopStore((s: any) => s.commitEdit);
+  // Drives the shader's CTRL-view preview uniform. Replacing the built-in NR
+  // sliders dropped this — re-wire it so Alt/Ctrl-dragging a denoise knob shows
+  // the same luminance/chroma visualization the core sliders do.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setSharpenViz: (mode: number) => void = useDevelopStore((s: any) => s.setSharpenViz);
 
   const knobs = controlsFor(method);
-  if (knobs.length === 0) return null; // Off → slot empty → built-in NR shows
+  // Defensive: the slot is unregistered when "off", so this normally won't render
+  // with an empty knob set — but guard the transient frame during a method switch.
+  if (knobs.length === 0) return null;
 
   const row = (knob: Knob) => {
     const qk = `${STAGE_ID}.${knob.key}`;
@@ -71,6 +79,9 @@ export function DenoiseControls() {
       defaultValue: knob.default,
       onChange: (v: number) => setDynParam(qk, v),
       onCommit: () => commitEdit(`Denoise ${knob.label}`),
+      onModifierPreview: knob.viz
+        ? (active: boolean) => setSharpenViz(active ? knob.viz! : 0)
+        : undefined,
     });
   };
 

@@ -93,6 +93,9 @@ export interface SafelightAPI {
   unregisterProcessingStage(id: string): void;
   registerSettings(c: SettingsContribution): void;
   registerSlot(c: SlotContribution): void;
+  /** Remove a slot contribution by id. Optional: older hosts may not expose it,
+   *  so callers should guard with `?.`. */
+  unregisterSlot?(id: string): void;
   settings: {
     get<T>(key: string, fallback: T): T;
     set(key: string, value: unknown): void;

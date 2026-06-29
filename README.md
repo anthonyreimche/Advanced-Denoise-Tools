@@ -38,6 +38,12 @@ amount is 0):
 Settings persist per photo, take part in undo/redo, and ride along in develop
 presets, just like a built-in adjustment.
 
+**Alt/Ctrl-drag preview** ("CTRL view") — like the built-in Detail sliders, hold
+Alt or Ctrl while dragging a denoise knob to see the affected signal isolated on
+the canvas: the **Color** knob reveals chroma speckle against neutral grey, and
+every other knob shows the luminance result. Release to return to the normal
+view. This mirrors the core sliders these controls replace.
+
 ## Requirements
 
 Requires a SafeLight build with the generic processing-stage framework
