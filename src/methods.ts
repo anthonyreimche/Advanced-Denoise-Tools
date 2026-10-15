@@ -57,17 +57,21 @@ const uni = (knob: Knob): UniformDeclaration => ({
 const INLINE_UNIFORMS = [KNOBS.lumAmt, KNOBS.colAmt, KNOBS.shadow, KNOBS.highlight].map(uni);
 
 // Inline blend on scene-linear `lin`, luma-normalised so luminance and colour
-// denoise are independent and flat areas keep saturation.
+// denoise are independent and flat areas keep saturation. Colours outside the
+// sRGB primaries arrive with channels below black, and their luma can sit at or
+// below zero while a channel doesn't; dividing by it would blow those channels
+// up. So the ratios divide by the luma of the channels above black, which bounds
+// them as for an in-gamut colour and is the plain luma when none is negative.
 const INLINE_GLSL = `
 float _la = lumAmt / 100.0;
 float _ca = colAmt / 100.0;
 if (_la > 0.001 || _ca > 0.001) {
-  float _lc = max(luma(lin), 1e-4);
+  float _lc = max(luma(max(lin, 0.0)), 1e-4);
   float _zone = clamp(1.0
     + (shadow / 100.0) * (1.0 - smoothstep(0.0, 0.35, _lc))
     - (highlight / 100.0) * smoothstep(0.65, 1.0, _lc), 0.0, 2.0);
   vec3 _den = stageResult;
-  float _ld = max(luma(_den), 1e-4);
+  float _ld = max(luma(max(_den, 0.0)), 1e-4);
   float _nl = mix(_lc, _ld, clamp(_la * _zone, 0.0, 1.0));
   vec3 _chC = lin / _lc;
   vec3 _chD = _den / _ld;
