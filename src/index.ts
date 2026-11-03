@@ -9,7 +9,7 @@
 
 import type { SafelightAPI } from "./safelight";
 import { initRuntime } from "./runtime";
-import { STAGE_ID, stageFor, type Method } from "./methods";
+import { STAGE_ID, normalizeMethod, stageFor } from "./methods";
 import { DenoiseControls } from "./controls";
 
 const METHOD_KEY = "method";
@@ -20,7 +20,7 @@ const SLOT_ID = `${STAGE_ID}.controls`;
 // removing the develop-detail slot is what lets the core Detail panel fall back
 // to its built-in NR sliders (the panel keys that fallback on the slot being
 // empty, so a slot that merely renders null isn't enough — it must be gone).
-function applyMethod(api: SafelightAPI, method: Method): void {
+function applyMethod(api: SafelightAPI, method: unknown): void {
   const stage = stageFor(method);
   if (!stage) {
     api.unregisterProcessingStage(STAGE_ID);
@@ -55,9 +55,9 @@ export function activate(api: SafelightAPI): void {
 
   // Apply the saved method now (registers the stage + controls slot when a
   // method is active, leaves both out when "off"), and follow dropdown changes.
-  applyMethod(api, api.settings.get<Method>(METHOD_KEY, "off"));
+  applyMethod(api, normalizeMethod(api.settings.get<unknown>(METHOD_KEY, "off")));
   api.settings.onChange((key, value) => {
-    if (key === METHOD_KEY) applyMethod(api, (value as Method) ?? "off");
+    if (key === METHOD_KEY) applyMethod(api, normalizeMethod(value));
   });
 }
 

@@ -26,7 +26,7 @@ export interface Knob {
   default: number;
   // Alt/Ctrl-drag preview ("CTRL view") mode, matching the core Detail panel's
   // develop-store.sharpenViz uniform: 1 = masking, 2 = detail/edge signal,
-  // 3 = luminance (grayscale), 4 = chroma (colour-noise reveal). Omitted = none.
+  // 3 = luminance (greyscale), 4 = chroma (colour-noise reveal). Omitted = none.
   // Mirrors the built-in NR convention: colour knob reveals chroma, everything
   // else shows the luminance result of the denoise.
   viz?: number;
@@ -34,7 +34,7 @@ export interface Knob {
 
 export const KNOBS: Record<string, Knob> = {
   lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0, viz: 3 },
-  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0, viz: 4 },
+  colAmt: { key: "colAmt", label: "Colour", min: 0, max: 100, step: 1, default: 0, viz: 4 },
   detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50, viz: 3 },
   scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5, viz: 3 },
   shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0, viz: 3 },
@@ -56,7 +56,7 @@ const uni = (knob: Knob): UniformDeclaration => ({
 // expose Shadows/Highlights still declare them (default 0 → no bias).
 const INLINE_UNIFORMS = [KNOBS.lumAmt, KNOBS.colAmt, KNOBS.shadow, KNOBS.highlight].map(uni);
 
-// Inline blend on scene-linear `lin`, luma-normalised so luminance and colour
+// Inline blend on scene-linear `lin`, luma-normalized so luminance and colour
 // denoise are independent and flat areas keep saturation. Colours outside the
 // sRGB primaries arrive with channels below black, and their luma can sit at or
 // below zero while a channel doesn't; dividing by it would blow those channels
@@ -172,12 +172,19 @@ export const METHOD_CONTROLS: Record<Exclude<Method, "off">, Knob[]> = {
   nlm: [KNOBS.lumAmt, KNOBS.colAmt, KNOBS.strength, KNOBS.quality],
 };
 
-export function controlsFor(method: Method): Knob[] {
+/** The method a saved or incoming setting names: "off" unless it is one we know. */
+export function normalizeMethod(value: unknown): Method {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(METHOD_CONTROLS, value) ? (value as Method) : "off";
+}
+
+export function controlsFor(value: unknown): Knob[] {
+  const method = normalizeMethod(value);
   return method === "off" ? [] : METHOD_CONTROLS[method];
 }
 
 /** The processing stage for a method, or null for "off". */
-export function stageFor(method: Method): ProcessingStageContribution | null {
+export function stageFor(value: unknown): ProcessingStageContribution | null {
+  const method = normalizeMethod(value);
   if (method === "off") return null;
   const base = {
     id: STAGE_ID,

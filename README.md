@@ -30,7 +30,7 @@ amount is 0):
 | --- | --- | --- |
 | Luminance | Amount | How strongly luminance noise is reduced |
 | Luminance | Detail | Edge preservation (higher keeps more fine detail) |
-| Color | Amount | How strongly colour (chroma) noise is reduced |
+| Colour | Amount | How strongly colour (chroma) noise is reduced |
 | Range | Shadows / Highlights | Bias denoise toward dark / bright tones |
 | Bilateral pre-pass | Strength | Edge-aware primer applied before the wavelet |
 | Non-local means | Strength | Patch-similarity denoise (heavy) |
@@ -40,7 +40,7 @@ presets, just like a built-in adjustment.
 
 **Alt/Ctrl-drag preview** ("CTRL view") — like the built-in Detail sliders, hold
 Alt or Ctrl while dragging a denoise knob to see the affected signal isolated on
-the canvas: the **Color** knob reveals chroma speckle against neutral grey, and
+the canvas: the **Colour** knob reveals chroma speckle against neutral grey, and
 every other knob shows the luminance result. Release to return to the normal
 view. This mirrors the core sliders these controls replace.
 
@@ -61,6 +61,6 @@ npm run build      # → dist/index.js
 Then install the folder through SafeLight's Extensions store (or your dev
 plugins folder).
 
-## License
+## Licence
 
 MIT

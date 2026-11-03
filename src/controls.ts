@@ -7,7 +7,7 @@
 // Inline styles + CSS variables (runtime-loaded extensions aren't Tailwind-scanned).
 
 import { h, api } from "./runtime";
-import { STAGE_ID, controlsFor, type Method, type Knob } from "./methods";
+import { STAGE_ID, controlsFor, normalizeMethod, type Method, type Knob } from "./methods";
 
 const METHOD_LABELS: Record<Method, string> = {
   off: "Off",
@@ -40,11 +40,11 @@ export function DenoiseControls() {
 
   // Track the active method; re-render when it changes in Preferences.
   const [method, setMethod] = react.useState(
-    () => api().settings.get<Method>("method", "off"),
+    () => normalizeMethod(api().settings.get<unknown>("method", "off")),
   ) as [Method, (m: Method) => void];
   react.useEffect(() => {
     return api().settings.onChange((key: string, value: unknown) => {
-      if (key === "method") setMethod((value as Method) ?? "off");
+      if (key === "method") setMethod(normalizeMethod(value));
     });
   }, []);
 
