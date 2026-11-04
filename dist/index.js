@@ -1,21 +1,21 @@
-let u = null, m = null;
-function L(e) {
-  u = e.react, m = e;
+let m = null, p = null;
+function E(e) {
+  m = e.react, p = e;
 }
-function n() {
-  if (!m) throw new Error("[advanced-denoise] api used before activate()");
+function i() {
+  if (!p) throw new Error("[advanced-denoise] api used before activate()");
+  return p;
+}
+function O() {
+  if (!m) throw new Error("[advanced-denoise] runtime used before activate()");
   return m;
 }
-function z() {
-  if (!u) throw new Error("[advanced-denoise] runtime used before activate()");
-  return u;
+function r(e, a, ...o) {
+  return O().createElement(e, a, ...o);
 }
-function c(e, a, ...o) {
-  return z().createElement(e, a, ...o);
-}
-const d = "advanced-denoise.nr", t = {
+const _ = "advanced-denoise.nr", t = {
   lumAmt: { key: "lumAmt", label: "Luminance", min: 0, max: 100, step: 1, default: 0, viz: 3 },
-  colAmt: { key: "colAmt", label: "Color", min: 0, max: 100, step: 1, default: 0, viz: 4 },
+  colAmt: { key: "colAmt", label: "Colour", min: 0, max: 100, step: 1, default: 0, viz: 4 },
   detail: { key: "detail", label: "Detail", min: 0, max: 100, step: 1, default: 50, viz: 3 },
   scales: { key: "scales", label: "Scales", min: 1, max: 5, step: 1, default: 5, viz: 3 },
   shadow: { key: "shadow", label: "Shadows", min: 0, max: 100, step: 1, default: 0, viz: 3 },
@@ -23,31 +23,31 @@ const d = "advanced-denoise.nr", t = {
   radius: { key: "radius", label: "Radius", min: 1, max: 3, step: 0.1, default: 2, viz: 3 },
   strength: { key: "strength", label: "Strength", min: 0, max: 100, step: 1, default: 0, viz: 3 },
   quality: { key: "quality", label: "Quality", min: 0, max: 100, step: 1, default: 0, viz: 3 }
-}, r = (e) => ({
+}, d = (e) => ({
   key: e.key,
   glslType: "float",
   default: e.default,
   range: { min: e.min, max: e.max, step: e.step },
   label: e.label
-}), E = [t.lumAmt, t.colAmt, t.shadow, t.highlight].map(r), T = `
+}), T = [t.lumAmt, t.colAmt, t.shadow, t.highlight].map(d), P = `
 float _la = lumAmt / 100.0;
 float _ca = colAmt / 100.0;
 if (_la > 0.001 || _ca > 0.001) {
-  float _lc = max(luma(lin), 1e-4);
+  float _lc = max(luma(max(lin, 0.0)), 1e-4);
   float _zone = clamp(1.0
     + (shadow / 100.0) * (1.0 - smoothstep(0.0, 0.35, _lc))
     - (highlight / 100.0) * smoothstep(0.65, 1.0, _lc), 0.0, 2.0);
   vec3 _den = stageResult;
-  float _ld = max(luma(_den), 1e-4);
+  float _ld = max(luma(max(_den, 0.0)), 1e-4);
   float _nl = mix(_lc, _ld, clamp(_la * _zone, 0.0, 1.0));
   vec3 _chC = lin / _lc;
   vec3 _chD = _den / _ld;
   vec3 _ch = mix(_chC, _chD, clamp(_ca * _zone, 0.0, 1.0));
   lin = _ch * _nl;
 }
-`, O = `
+`, N = `
 float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 0.0625); }
-`, P = `
+`, R = `
 {
   if (uPassIndex < int(scales)) {
     float _dpr = detail / 100.0;
@@ -72,7 +72,7 @@ float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 
     c = _w > 0.0 ? _acc / _w : _ctr;
   }
 }
-`, N = `
+`, I = `
 {
   float _edge = mix(0.25, 0.03, detail / 100.0);
   vec3 _ctr = c;
@@ -93,7 +93,7 @@ float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 
   }
   c = _w > 0.0 ? _acc / _w : _ctr;
 }
-`, R = `
+`, q = `
 {
   float _h2 = mix(0.05, 0.004, strength / 100.0);
   float _q = mix(1.0, 2.0, quality / 100.0);
@@ -120,45 +120,50 @@ float b3w(int d) { d = d < 0 ? -d : d; return d == 0 ? 0.375 : (d == 1 ? 0.25 : 
   }
   c = _w > 0.0 ? _acc / _w : _ctr;
 }
-`, I = {
+`, y = {
   wavelet: [t.lumAmt, t.detail, t.colAmt, t.scales, t.shadow, t.highlight],
   bilateral: [t.lumAmt, t.colAmt, t.radius, t.detail],
   nlm: [t.lumAmt, t.colAmt, t.strength, t.quality]
 };
-function q(e) {
-  return e === "off" ? [] : I[e];
+function s(e) {
+  return typeof e == "string" && Object.prototype.hasOwnProperty.call(y, e) ? e : "off";
 }
 function C(e) {
-  if (e === "off") return null;
-  const a = {
-    id: d,
+  const a = s(e);
+  return a === "off" ? [] : y[a];
+}
+function M(e) {
+  const a = s(e);
+  if (a === "off") return null;
+  const o = {
+    id: _,
     name: "Advanced Denoise",
     phase: "noise-reduction",
     priority: 40,
-    glsl: T,
-    uniforms: E
+    glsl: P,
+    uniforms: T
   };
-  return e === "wavelet" ? {
-    ...a,
+  return a === "wavelet" ? {
+    ...o,
     passes: [
-      { glsl: P, helpers: O, iterations: 5, uniforms: [t.detail, t.scales].map(r) }
+      { glsl: R, helpers: N, iterations: 5, uniforms: [t.detail, t.scales].map(d) }
     ]
-  } : e === "bilateral" ? {
-    ...a,
-    passes: [{ glsl: N, iterations: 1, uniforms: [t.radius, t.detail].map(r) }]
+  } : a === "bilateral" ? {
+    ...o,
+    passes: [{ glsl: I, iterations: 1, uniforms: [t.radius, t.detail].map(d) }]
   } : {
-    ...a,
-    passes: [{ glsl: R, iterations: 1, uniforms: [t.strength, t.quality].map(r) }]
+    ...o,
+    passes: [{ glsl: q, iterations: 1, uniforms: [t.strength, t.quality].map(d) }]
   };
 }
-const M = {
+const U = {
   off: "Off",
   wavelet: "Wavelet",
   bilateral: "Bilateral",
   nlm: "Non-local means"
 };
-function U(e) {
-  return c(
+function B(e) {
+  return r(
     "div",
     {
       style: {
@@ -173,49 +178,49 @@ function U(e) {
     e
   );
 }
-function B() {
-  const e = n().react, a = n().stores.useDevelopStore, o = n().components.Slider, [s, g] = e.useState(
-    () => n().settings.get("method", "off")
+function H() {
+  const e = i().react, a = i().stores.useDevelopStore, o = i().components.Slider, [n, w] = e.useState(
+    () => s(i().settings.get("method", "off"))
   );
-  e.useEffect(() => n().settings.onChange((l, i) => {
-    l === "method" && g(i ?? "off");
+  e.useEffect(() => i().settings.onChange((l, c) => {
+    l === "method" && w(s(c));
   }), []);
-  const w = a((l) => l.paramBag), y = a((l) => l.setDynParam), S = a((l) => l.commitEdit), A = a((l) => l.setSharpenViz), v = q(s);
+  const S = a((l) => l.paramBag), A = a((l) => l.setDynParam), b = a((l) => l.commitEdit), D = a((l) => l.setSharpenViz), v = C(n);
   if (v.length === 0) return null;
-  const b = (l) => {
-    const i = `${d}.${l.key}`, p = w[i], D = typeof p == "number" ? p : l.default;
-    return c(o, {
+  const L = (l) => {
+    const c = `${_}.${l.key}`, h = S[c], z = typeof h == "number" ? h : l.default;
+    return r(o, {
       key: l.key,
       label: l.label,
-      value: D,
+      value: z,
       min: l.min,
       max: l.max,
       step: l.step,
       defaultValue: l.default,
-      onChange: (_) => y(i, _),
-      onCommit: () => S(`Denoise ${l.label}`),
-      onModifierPreview: l.viz ? (_) => A(_ ? l.viz : 0) : void 0
+      onChange: (f) => A(c, f),
+      onCommit: () => b(`Denoise ${l.label}`),
+      onModifierPreview: l.viz ? (f) => D(f ? l.viz : 0) : void 0
     });
   };
-  return c(
+  return r(
     "div",
     null,
-    U(`Noise Reduction · ${M[s]}`),
-    c("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } }, v.map(b))
+    B(`Noise Reduction · ${U[n]}`),
+    r("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } }, v.map(L))
   );
 }
-const f = "method", x = `${d}.controls`;
-function h(e, a) {
-  var s;
-  const o = C(a);
-  o ? (e.registerProcessingStage(o), e.registerSlot({ id: x, slot: "develop-detail", component: B })) : (e.unregisterProcessingStage(d), (s = e.unregisterSlot) == null || s.call(e, x));
+const u = "method", x = `${_}.controls`;
+function g(e, a) {
+  var n;
+  const o = M(a);
+  o ? (e.registerProcessingStage(o), e.registerSlot({ id: x, slot: "develop-detail", component: H })) : (e.unregisterProcessingStage(_), (n = e.unregisterSlot) == null || n.call(e, x));
 }
-function H(e) {
-  L(e), e.registerSettings({
+function G(e) {
+  E(e), e.registerSettings({
     title: "Advanced Denoise",
     fields: [
       {
-        key: f,
+        key: u,
         label: "Denoise method",
         hint: "Which noise-reduction algorithm runs in Develop. Only the selected method is active, and its controls appear under Detail ▸ Noise Reduction. 'Off' restores the built-in noise reduction.",
         type: "select",
@@ -228,14 +233,14 @@ function H(e) {
         ]
       }
     ]
-  }), h(e, e.settings.get(f, "off")), e.settings.onChange((a, o) => {
-    a === f && h(e, o ?? "off");
+  }), g(e, s(e.settings.get(u, "off"))), e.settings.onChange((a, o) => {
+    a === u && g(e, s(o));
   });
 }
-function G() {
+function $() {
 }
 export {
-  H as activate,
-  G as deactivate
+  G as activate,
+  $ as deactivate
 };
 //# sourceMappingURL=index.js.map
