@@ -24,7 +24,7 @@ function applyMethod(api: SafelightAPI, method: unknown): void {
   const stage = stageFor(method);
   if (!stage) {
     api.unregisterProcessingStage(STAGE_ID);
-    api.unregisterSlot?.(SLOT_ID);
+    api.unregisterSlot(SLOT_ID);
   } else {
     api.registerProcessingStage(stage);
     api.registerSlot({ id: SLOT_ID, slot: "develop-detail", component: DenoiseControls });

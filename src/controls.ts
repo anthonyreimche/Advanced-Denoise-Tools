@@ -7,6 +7,7 @@
 // Inline styles + CSS variables (runtime-loaded extensions aren't Tailwind-scanned).
 
 import { h, api } from "./runtime";
+import type { DevelopState } from "./safelight";
 import { STAGE_ID, controlsFor, normalizeMethod, type Method, type Knob } from "./methods";
 
 const METHOD_LABELS: Record<Method, string> = {
@@ -16,27 +17,11 @@ const METHOD_LABELS: Record<Method, string> = {
   nlm: "Non-local means",
 };
 
-function Header(title: string) {
-  return h(
-    "div",
-    {
-      style: {
-        padding: "8px 8px 2px",
-        fontSize: "10px",
-        fontWeight: 600,
-        textTransform: "uppercase",
-        letterSpacing: "0.14em",
-        color: "var(--color-text-muted)",
-      },
-    },
-    title,
-  );
-}
-
 export function DenoiseControls() {
   const react = api().react;
   const useDevelopStore = api().stores.useDevelopStore;
-  const Slider = api().components.Slider;
+  const { Slider } = api().components;
+  const { Section } = api().ui;
 
   // Track the active method; re-render when it changes in Preferences.
   const [method, setMethod] = react.useState(
@@ -48,17 +33,13 @@ export function DenoiseControls() {
     });
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const paramBag: Record<string, unknown> = useDevelopStore((s: any) => s.paramBag);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setDynParam: (k: string, v: unknown) => void = useDevelopStore((s: any) => s.setDynParam);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const commitEdit: (label: string) => void = useDevelopStore((s: any) => s.commitEdit);
+  const paramBag = useDevelopStore((s: DevelopState) => s.paramBag);
+  const setDynParam = useDevelopStore((s: DevelopState) => s.setDynParam);
+  const commitEdit = useDevelopStore((s: DevelopState) => s.commitEdit);
   // Drives the shader's CTRL-view preview uniform. Replacing the built-in NR
   // sliders dropped this — re-wire it so Alt/Ctrl-dragging a denoise knob shows
   // the same luminance/chroma visualization the core sliders do.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setSharpenViz: (mode: number) => void = useDevelopStore((s: any) => s.setSharpenViz);
+  const setSharpenViz = useDevelopStore((s: DevelopState) => s.setSharpenViz);
 
   const knobs = controlsFor(method);
   // Defensive: the slot is unregistered when "off", so this normally won't render
@@ -86,9 +67,8 @@ export function DenoiseControls() {
   };
 
   return h(
-    "div",
-    null,
-    Header(`Noise Reduction · ${METHOD_LABELS[method]}`),
+    Section,
+    { title: `Noise Reduction · ${METHOD_LABELS[method]}` },
     h("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } }, knobs.map(row)),
   );
 }
